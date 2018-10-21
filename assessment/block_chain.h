@@ -24,7 +24,7 @@ public:
 
     // Difficulty is the minimum number of zeros we require at the
     // start of the hash.
-    void mine_block(uint32_t difficulty) noexcept;
+	std::string mine_block(uint32_t difficulty) noexcept;
 
     inline const std::string& get_hash() const noexcept { return _hash; }
 
@@ -43,5 +43,6 @@ private:
 public:
     block_chain();
 
-    void add_block(block &&new_block) noexcept;
+	std::string add_block(block &&new_block) noexcept;
+	void change_difficulty(uint32_t diff) { _difficulty = diff; }
 };
