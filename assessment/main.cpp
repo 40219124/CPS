@@ -11,7 +11,7 @@ int main()
 	ofstream outFile("cps_data.csv", ios_base::out | ios_base::trunc);
 
 	uint32_t blocklimit = 20u;
-	uint32_t replimit = 25u;
+	uint32_t replimit = 1u;
 	uint32_t difflimit = 5u;
 
 	for (uint32_t diff = 0; diff <= difflimit; ++diff) {
