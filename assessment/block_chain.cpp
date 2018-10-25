@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <fstream>
 
 using namespace std;
 using namespace std::chrono;
@@ -55,5 +56,7 @@ string block_chain::add_block(block &&new_block) noexcept
     new_block.prev_hash = get_last_block().get_hash();
     string time = new_block.mine_block(_difficulty);
     _chain.push_back(new_block);
+	static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
+	hashOut << new_block.get_hash() << endl;
 	return time;
 }
