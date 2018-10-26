@@ -58,8 +58,8 @@ string block_chain::add_block(block &&new_block) noexcept
 	_chain.push_back(new_block);
 
 	// Place to print out hashes to be checked against original hashes
-	static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
-	hashOut <<  new_block.get_hash() << endl;
+	//static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
+	//hashOut <<  new_block.get_hash() << endl;
 
 	return time;
 }
