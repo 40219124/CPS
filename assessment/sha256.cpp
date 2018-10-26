@@ -2,6 +2,8 @@
 
 #include <cstring>
 #include <fstream>
+#include <thread>
+#include <vector>
 
 using namespace std;
 
@@ -150,6 +152,22 @@ void SHA256::final(unsigned char *digest)
     }
 }
 
+struct PACKAGE {
+	shared_ptr<char*> buf;
+	shared_ptr<unsigned char*> digest;
+	size_t from;
+	size_t to;
+
+	PACKAGE(){}
+	PACKAGE(shared_ptr<char*> b, shared_ptr<unsigned char*> d, size_t f, size_t t) : buf(b), digest(d), from(f), to(t){}
+};
+
+void convertBuffer(PACKAGE p) {
+	for (p.from; p.from < p.to; ++p.from) {
+		sprintf((*p.buf) + p.from * 2, "%02x", (*p.digest)[p.from]);
+	}
+}
+
 std::string sha256(const std::string &input)
 {
     unsigned char digest[SHA256::DIGEST_SIZE];
@@ -160,7 +178,20 @@ std::string sha256(const std::string &input)
     ctx.final(digest);
     char buf[2 * SHA256::DIGEST_SIZE + 1];
     buf[2 * SHA256::DIGEST_SIZE] = 0;
+
+	/*uint32_t threadCount = thread::hardware_concurrency();
+	vector<thread> threads;
+	shared_ptr<char*> bufPtr = make_shared<char*>(buf);
+	shared_ptr<unsigned char*> digPtr = make_shared<unsigned char*>(digest);
+	for (uint32_t i = 0; i < threadCount; ++i) {
+		threads.push_back(thread(convertBuffer, PACKAGE(bufPtr, digPtr, SHA256::DIGEST_SIZE * i / threadCount, SHA256::DIGEST_SIZE * (i + 1) / threadCount)));
+	}
+	for (thread &t : threads) {
+		t.join();
+	}*/
+
     for (size_t i = 0; i < SHA256::DIGEST_SIZE; ++i)
         sprintf(buf + i * 2, "%02x", digest[i]);
+
     return std::string(buf);
 }

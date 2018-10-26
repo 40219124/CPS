@@ -7,18 +7,18 @@ using namespace std;
 
 int main()
 {
-	block_chain bchain;
-	bool printTimes = false;
+	bool printTimes = true;
 	ofstream outFile;
 	if (printTimes) {
 		outFile.open("cps_data.csv", ios_base::out | ios_base::trunc);
 	}
 
 	uint32_t blocklimit = 20u;
-	uint32_t replimit = 1u;
+	uint32_t replimit = 25u;
 	uint32_t difflimit = 5u;
 
 	for (uint32_t diff = 0; diff <= difflimit; ++diff) {
+		block_chain bchain;
 		bchain.change_difficulty(diff);
 		// Create the header for the tables, stating difficulty and block index
 		if (printTimes) {
@@ -30,7 +30,7 @@ int main()
 		}
 		for (uint32_t repeat = 0; repeat < replimit; ++repeat) {
 
-			for (uint32_t blocks = 1; blocks < blocklimit; ++blocks)
+			for (uint32_t blocks = 1; blocks <= blocklimit; ++blocks)
 			{
 				cout << "Mining block " << blocks << "..." << endl;
 				// Print the time the block took, and seperate from the next with comma
@@ -53,5 +53,7 @@ int main()
 	if (printTimes) {
 		outFile << endl;
 	}
+
+
 	return 0;
 }
