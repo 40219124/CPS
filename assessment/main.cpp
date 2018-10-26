@@ -21,7 +21,7 @@ int main()
 		// Create the header for the tables, stating difficulty and block index
 		if (printTimes) {
 			outFile << "difficulty " << diff << endl;
-			for (uint32_t i = 1; i < blocklimit; ++i) {
+			for (uint32_t i = 1; i <= blocklimit; ++i) {
 				outFile << "block " << i << ",";
 			}
 			outFile << endl;
