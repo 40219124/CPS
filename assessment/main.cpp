@@ -8,15 +8,15 @@ using namespace std;
 
 int main()
 {
-	bool printTimes = false;
+	bool printTimes = true;
 	ofstream outFile;
 	if (printTimes) {
 		outFile.open("cps_data.csv", ios_base::out | ios_base::trunc);
 	}
 
 	uint32_t blocklimit = 20u;
-	uint32_t replimit = 2u;
-	uint32_t difflimit = 5u;
+	uint32_t replimit = 1u;
+	uint32_t difflimit = 2u;
 
 	Verification::SetLimitDetails(difflimit, blocklimit);
 
