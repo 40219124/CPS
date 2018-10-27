@@ -186,10 +186,11 @@ std::string sha256(const std::string &input)
 	shared_ptr<char*> bufPtr = make_shared<char*>(buf);
 	shared_ptr<unsigned char*> digPtr = make_shared<unsigned char*>(digest);
 	shared_ptr<atomic<uint32_t>> atomicI = make_shared<atomic<uint32_t>>();
-
-	for (uint32_t i = 0; i < threadCount; ++i) {
-		threads.push_back(thread(convertBuffer, PACKAGE(bufPtr, digPtr, atomicI)));
+	PACKAGE travelBag(bufPtr, digPtr, atomicI);
+	for (uint32_t i = 0; i < threadCount - 1; ++i) {
+		threads.push_back(thread(convertBuffer, travelBag));
 	}
+	convertBuffer(travelBag);
 	for (thread &t : threads) {
 		t.join();
 	}
