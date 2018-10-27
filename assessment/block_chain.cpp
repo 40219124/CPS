@@ -1,5 +1,6 @@
 #include "block_chain.h"
 #include "sha256.h"
+#include "Verification.h"
 
 #include <iostream>
 #include <sstream>
@@ -57,9 +58,11 @@ string block_chain::add_block(block &&new_block) noexcept
 	string time = new_block.mine_block(_difficulty);
 	_chain.push_back(new_block);
 
-	// Place to print out hashes to be checked against original hashes
-	//static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
-	//hashOut <<  new_block.get_hash() << endl;
+	// Verify the found hash
+	Verification::VerifyHash(new_block.get_hash());
+	// Print out the new hash (primarily for finding initial hash values)
+	/*static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
+	hashOut <<  new_block.get_hash() << endl;*/
 
 	return time;
 }
