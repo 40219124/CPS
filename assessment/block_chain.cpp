@@ -61,8 +61,8 @@ string block_chain::add_block(block &&new_block) noexcept
 	// Verify the found hash
 	Verification::VerifyHash(new_block.get_hash());
 	// Print out the new hash (primarily for finding initial hash values)
-	/*static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
-	hashOut <<  new_block.get_hash() << endl;*/
+	static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
+	hashOut <<  new_block.get_hash() << endl;
 
 	return time;
 }
