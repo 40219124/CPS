@@ -164,7 +164,7 @@ struct PACKAGE {
 
 void convertBuffer(PACKAGE p) {
 	uint32_t localI = 0;
-	for (*p.atomI; *p.atomI < SHA256::DIGEST_SIZE; localI = (*p.atomI)++) {
+	for (*p.atomI; *p.atomI <= SHA256::DIGEST_SIZE; localI = (*p.atomI)++) {
 		sprintf((*p.buf) + localI * 2, "%02x", (*p.digest)[localI]);
 	}
 }
