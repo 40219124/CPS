@@ -15,8 +15,8 @@ int main()
 	}
 
 	uint32_t blocklimit = 20u;
-	uint32_t replimit = 1u;
-	uint32_t difflimit = 2u;
+	uint32_t replimit = 25u;
+	uint32_t difflimit = 3u;
 
 	Verification::SetLimitDetails(difflimit, blocklimit);
 
