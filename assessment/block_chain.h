@@ -17,7 +17,7 @@ private:
     // Time code block was created.
     long _time;
 
-    std::string calculate_hash(const uint64_t nonce) const noexcept;
+    std::string calculate_hash() const noexcept;
 
 public:
     block(uint32_t index, const std::string &data);
