@@ -139,22 +139,6 @@ void SHA256::final(unsigned char *digest) {
 	}
 }
 
-struct PACKAGE {
-	shared_ptr<char*> buf;
-	shared_ptr<unsigned char*> digest;
-	shared_ptr<atomic<uint32_t>> atomI;
-
-	PACKAGE() {}
-	PACKAGE(shared_ptr<char*> b, shared_ptr<unsigned char*> d, shared_ptr<atomic<uint32_t>> aI) : buf(b), digest(d), atomI(aI) {}
-};
-
-void convertBuffer(PACKAGE p) {
-	uint32_t localI = 0;
-	for (*p.atomI; *p.atomI <= SHA256::DIGEST_SIZE; localI = (*p.atomI)++) {
-		sprintf((*p.buf) + localI * 2, "%02x", (*p.digest)[localI]);
-	}
-}
-
 std::string sha256(const std::string &input) {
 	unsigned char digest[SHA256::DIGEST_SIZE];
 	memset(digest, 0, SHA256::DIGEST_SIZE);
@@ -164,30 +148,7 @@ std::string sha256(const std::string &input) {
 	ctx.final(digest);
 	char buf[2 * SHA256::DIGEST_SIZE + 1];
 	buf[2 * SHA256::DIGEST_SIZE] = 0;
-
-	// Future sprintf ------------------------------------------------------------
-	uint32_t threadCount = thread::hardware_concurrency();
-	vector<future<void>> futures;
-	// Shared pointer creation
-	shared_ptr<char*> bufPtr = make_shared<char*>(buf);
-	shared_ptr<unsigned char*> digPtr = make_shared<unsigned char*>(digest);
-	shared_ptr<atomic<uint32_t>> atomicI = make_shared<atomic<uint32_t>>();
-	// Struct creation
-	PACKAGE travelBag(bufPtr, digPtr, atomicI);
-	// Future creation
-	for (uint32_t i = 0; i < threadCount - 1; ++i) {
-		futures.emplace_back(async(launch::async, convertBuffer, travelBag));
-	}
-	// Use of main thread
-	convertBuffer(travelBag);
-	// Conclusion of threads
-	for (future<void> &f : futures) {
-		f.get();
-	}
-
-	// Regular sprintf
-   /* for (size_t i = 0; i < SHA256::DIGEST_SIZE; ++i)
-		sprintf(buf + i * 2, "%02x", digest[i]);*/
-
+	for (size_t i = 0; i < SHA256::DIGEST_SIZE; ++i)
+		sprintf(buf + i * 2, "%02x", digest[i]);
 	return std::string(buf);
 }

@@ -6,6 +6,8 @@
 #include <sstream>
 #include <chrono>
 #include <fstream>
+#include <queue>
+#include <future>
 
 using namespace std;
 using namespace std::chrono;
@@ -16,21 +18,30 @@ using namespace std::chrono;
 // from parallelisation we will just use the index value, so time increments
 // by one each time: 1, 2, 3, etc.
 block::block(uint32_t index, const string &data)
-	: _index(index), _data(data), _nonce(0), _time(static_cast<long>(index))
-{
-}
+	: _index(index), _data(data), _nonce(0), _time(static_cast<long>(index)) {}
 
-string block::mine_block(uint32_t difficulty) noexcept
-{
+string block::mine_block(uint32_t difficulty) noexcept {
 	string str(difficulty, '0');
 
 	auto start = system_clock::now();
+	queue<future<string>> futures;
+	uint32_t threadCount = thread::hardware_concurrency();
 
-	while (_hash.substr(0, difficulty) != str)
-	{
-		++_nonce;
-		_hash = calculate_hash();
+	while (_hash.substr(0, difficulty) != str) {
+		while (futures.size() < threadCount - (threadCount > 1 ? 1 : 0)) {
+			futures.push(async(launch::async, &block::calculate_hash, this, ++_nonce));
+		}
+
+		future<string> fu = move(futures.front());
+		futures.pop();
+		fu.wait();
+		_hash = move(fu.get());
 	}
+
+	// have 3 threads doing calculate_hash()
+	// have main check them in order via queue
+	// if criteria met continue
+
 
 	auto end = system_clock::now();
 	duration<double> diff = end - start;
@@ -39,21 +50,18 @@ string block::mine_block(uint32_t difficulty) noexcept
 	return to_string(diff.count());
 }
 
-std::string block::calculate_hash() const noexcept
-{
+std::string block::calculate_hash(const uint64_t nonce) const noexcept {
 	stringstream ss;
-	ss << _index << _time << _data << _nonce << prev_hash;
+	ss << _index << _time << _data << nonce << prev_hash;
 	return sha256(ss.str());
 }
 
-block_chain::block_chain()
-{
+block_chain::block_chain() {
 	_chain.emplace_back(block(0, "Genesis Block"));
 	_difficulty = 2;
 }
 
-string block_chain::add_block(block &&new_block) noexcept
-{
+string block_chain::add_block(block &&new_block) noexcept {
 	new_block.prev_hash = get_last_block().get_hash();
 	string time = new_block.mine_block(_difficulty);
 	_chain.push_back(new_block);
@@ -62,7 +70,7 @@ string block_chain::add_block(block &&new_block) noexcept
 	Verification::VerifyHash(new_block.get_hash());
 	// Print out the new hash (primarily for finding initial hash values)
 	static ofstream hashOut("test_hashes.txt", ios_base::out | ios_base::trunc);
-	hashOut <<  new_block.get_hash() << endl;
+	hashOut << new_block.get_hash() << endl;
 
 	return time;
 }
