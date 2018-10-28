@@ -24,12 +24,44 @@ string block::mine_block(uint32_t difficulty) noexcept {
 	string str(difficulty, '0');
 
 	auto start = system_clock::now();
-
-	while (_hash.substr(0, difficulty) != str)
-	{
-		++_nonce;
-		_hash = calculate_hash();
+	queue<future<string>> futures;
+	uint32_t threadCount = thread::hardware_concurrency();
+	bool notDone = true;
+	while (notDone) {
+		// Make up to the maximum futures (main inclusive)
+		while (futures.size() < threadCount - (threadCount > 1 ? 1 : 0)) {
+			futures.push(async(launch::async, &block::calculate_hash, this, ++_nonce));
+		}
+		while (notDone) {
+			// Get a future
+			future<string> fu = move(futures.front());
+			// Remove it from queue
+			futures.pop();
+			// If the future queue is full wait
+			if (futures.size() >= threadCount - 1) {
+				fu.wait();
+			} 
+			// else if the next future is ready process it
+			else if (!fu.valid()) {
+				break;
+			}
+			// write the future return value to _hash
+			_hash = move(fu.get());
+			// if the right hash is found exit loops
+			if (_hash.substr(0, difficulty) == str) {
+				notDone = false;
+			}
+			// if no more futures left
+			if (futures.size() == 0) {
+				break;
+			}
+		}
 	}
+
+	// have 3 threads doing calculate_hash()
+	// have main check them in order via queue
+	// if criteria met continue
+
 
 	auto end = system_clock::now();
 	duration<double> diff = end - start;
@@ -38,9 +70,9 @@ string block::mine_block(uint32_t difficulty) noexcept {
 	return to_string(diff.count());
 }
 
-std::string block::calculate_hash() const noexcept {
+std::string block::calculate_hash(const uint64_t nonce) const noexcept {
 	stringstream ss;
-	ss << _index << _time << _data << _nonce << prev_hash;
+	ss << _index << _time << _data << nonce << prev_hash;
 	return sha256(ss.str());
 }
 
