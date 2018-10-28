@@ -33,17 +33,19 @@ string block::mine_block(uint32_t difficulty) noexcept {
 			futures.push(async(launch::async, &block::calculate_hash, this, ++_nonce));
 		}
 		while (notDone) {
+			// Break if future queue has space and next entry isn't ready
+			if (futures.size() < threadCount - 1) {
+				if (futures.front().wait_for(chrono::seconds(0)) != future_status::ready) {
+					break;
+				}
+			}
 			// Get a future
 			future<string> fu = move(futures.front());
 			// Remove it from queue
 			futures.pop();
-			// If the future queue is full wait
-			if (futures.size() >= threadCount - 1) {
+			// Wait for future to be ready
+			if (fu.wait_for(chrono::seconds(0)) != future_status::ready) {
 				fu.wait();
-			} 
-			// else if the next future is ready process it
-			else if (!fu.valid()) {
-				break;
 			}
 			// write the future return value to _hash
 			_hash = move(fu.get());
